@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>🎮 Escondidijo Extremo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Paleta inspirada en boleras retro: madera oscura, neón cálido de marquesina, pista con brillo */
+  --bg:#16110c;
+  --bg2:#1f1811;
+  --panel:#241b13;
+  --panel2:#2d2116;
+  --line:#4a3520;
+  --text:#fdf3e2;
+  --dim:#c2a781;
+  --pink:#d64545;      /* rojo bola/pin de bolera */
+  --pink-dim:#5c1f1f;
+  --cyan:#2a9d8f;       /* verde-azulado carril */
+  --gold:#f2b134;       /* dorado marquesina */
+  --bad:#e0533d;
+  --good:#2a9d8f;
+  --shadow: 0 12px 28px rgba(0,0,0,.55);
+  --radius: 20px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:
+    repeating-linear-gradient(180deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 36px, rgba(0,0,0,.16) 36px, rgba(0,0,0,.16) 38px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0px, rgba(255,255,255,.025) 1px, transparent 1px, transparent 130px),
+    radial-gradient(ellipse at 50% -10%, rgba(242,177,52,.10) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 110%, rgba(214,69,69,.08) 0%, transparent 45%),
+    linear-gradient(180deg, #1c150e, var(--bg) 40%);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100%;
+  padding-top: env(safe-area-inset-top,0px);
+  padding-bottom: env(safe-area-inset-bottom,0px);
+  overscroll-behavior:none;
+}
+.digits{font-family:'Orbitron',sans-serif; font-weight:700; letter-spacing:1px;}
+/* Luces de marquesina, tipo letrero de bolera */
+.marquee-lights{display:flex; justify-content:center; gap:8px; margin:0 0 6px;}
+.marquee-lights span{width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px 2px rgba(242,177,52,.9); animation:blink 1.6s infinite;}
+.marquee-lights span:nth-child(odd){animation-delay:.4s; background:var(--pink); box-shadow:0 0 8px 2px rgba(214,69,69,.9);}
+.marquee-lights span:nth-child(3n){animation-delay:.8s; background:var(--cyan); box-shadow:0 0 8px 2px rgba(42,157,143,.9);}
+@keyframes blink{0%,100%{opacity:.35;} 50%{opacity:1;}}
+h1,h2,h3,.display{
+  font-family:'Bebas Neue',sans-serif;
+  letter-spacing:0.5px;
+  line-height:1.05;
+}
+.app{max-width:720px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column;}
+.topbar{
+  display:none;
+  padding:14px 20px; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--line);
+  position:sticky; top:0; z-index:30; background:rgba(11,12,20,.85); backdrop-filter:blur(8px);
+}
+.topbar .brand{font-family:'Bebas Neue'; font-size:26px; color:var(--pink);}
+.topnav{display:flex; gap:4px;}
+.topnav button{
+  background:none; border:none; color:var(--dim); font-family:'Inter'; font-weight:600;
+  font-size:13px; padding:8px 12px; border-radius:10px; cursor:pointer;
+}
+.topnav button.active{color:var(--text); background:var(--panel2);}
+main{flex:1; padding:18px 16px 100px; position:relative;}
+.screen{display:none; animation:fadein .25s ease;}
+.screen.active{display:block;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.hero{text-align:center; padding:14vh 6px 30px;}
+.hero .logo{font-size:56px; color:var(--pink); text-shadow:0 0 30px rgba(255,46,99,.5);}
+.hero .tag{color:var(--dim); font-size:15px; margin-top:6px;}
+.btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:18px; border-radius:50px; border:none; cursor:pointer;
+  font-family:'Inter'; font-weight:800; font-size:16px; margin-top:12px;
+  transition:transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  -webkit-user-select:none; user-select:none;
+  letter-spacing:.3px;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{
+  background: radial-gradient(circle at 30% 25%, #ef7a6b 0%, var(--pink) 45%, #9c2b2b 100%);
+  color:#fff5e8; box-shadow:0 8px 22px rgba(214,69,69,.4), inset 0 2px 3px rgba(255,255,255,.35), inset 0 -6px 10px rgba(0,0,0,.25);
+}
+.btn-secondary{background:linear-gradient(180deg,#372918,var(--panel2)); color:var(--text); border:1px solid var(--line); border-top-color:#5c4527;}
+.btn-cyan{
+  background: radial-gradient(circle at 30% 25%, #5cc9ba 0%, var(--cyan) 45%, #146358 100%);
+  color:#eafff9; box-shadow:0 8px 22px rgba(42,157,143,.35), inset 0 2px 3px rgba(255,255,255,.3), inset 0 -6px 10px rgba(0,0,0,.25);
+}
+.btn-gold{
+  background: radial-gradient(circle at 30% 25%, #ffd579 0%, var(--gold) 45%, #b3760f 100%);
+  color:#2b1900; box-shadow:0 8px 22px rgba(242,177,52,.35), inset 0 2px 3px rgba(255,255,255,.4), inset 0 -6px 10px rgba(0,0,0,.2);
+}
+.btn-ghost{background:none; color:var(--dim); border:1px dashed var(--line);}
+.btn:disabled{opacity:.35; cursor:not-allowed; filter:grayscale(.5);}
+.btn small{font-weight:500; opacity:.8;}
+
+.card-box{
+  position:relative; background:linear-gradient(180deg,#1b1c2d,var(--panel) 40%); border:1px solid var(--line);
+  border-top:1px solid #3a3d5c; border-radius:var(--radius); padding:18px 16px 16px;
+  margin-bottom:14px; box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.card-box::before{
+  content:''; position:absolute; top:0; left:16px; right:16px; height:3px; border-radius:0 0 4px 4px;
+  background:linear-gradient(90deg,var(--pink),var(--gold),var(--cyan));
+  opacity:.85;
+}
+.card-box h3{margin:0 0 10px; font-size:22px; color:var(--text);}
+.section-title{font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--dim); font-weight:700; margin:22px 0 10px;}
+
+input[type=text]{
+  width:100%; padding:14px 16px; border-radius:14px; border:1px solid var(--line);
+  background:var(--bg2); color:var(--text); font-size:15px; font-family:'Inter';
+}
+input[type=text]:focus{outline:none; border-color:var(--pink);}
+
+.player-row{display:flex; align-items:center; gap:10px; padding:12px; background:var(--bg2); border-radius:14px; margin-bottom:8px; border:1px solid var(--line);}
+.player-row .avatar{width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,var(--pink),var(--cyan)); display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; box-shadow:0 0 0 2px var(--line), 0 3px 8px rgba(0,0,0,.4); object-fit:cover;}
+.player-row .avatar-wrap{position:relative; flex-shrink:0;}
+.player-row .cam-badge{position:absolute; bottom:-2px; right:-2px; width:20px; height:20px; border-radius:50%; background:var(--panel2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; cursor:pointer;}
+.player-row .name{flex:1; font-weight:600;}
+.player-row .icon-btn{background:none; border:none; color:var(--dim); font-size:18px; cursor:pointer; padding:6px;}
+
+.wheel-wrap{display:flex; flex-direction:column; align-items:center; padding:20px 0;}
+.wheel-outer{position:relative; width:280px; height:280px; margin:10px auto;}
+.wheel{width:100%; height:100%; border-radius:50%; position:relative; overflow:hidden; border:6px solid var(--panel2); box-shadow:0 0 40px rgba(255,46,99,.25), inset 0 0 30px rgba(0,0,0,.4); transition: transform 4s cubic-bezier(.15,.85,.25,1);}
+.wheel-pointer{position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:28px; z-index:5;}
+.wheel-seg-label{position:absolute; left:50%; top:8%; transform-origin:0 142px; font-weight:800; font-size:12px; color:#fff; white-space:nowrap;}
+.wheel-center{position:absolute; top:50%; left:50%; width:54px; height:54px; margin:-27px 0 0 -27px; background:var(--bg); border-radius:50%; border:4px solid var(--gold); z-index:4; display:flex; align-items:center; justify-content:center; font-size:22px;}
+
+.result-badge{text-align:center; margin-top:10px;}
+.result-badge .label{color:var(--dim); font-size:13px; letter-spacing:2px; text-transform:uppercase;}
+.result-badge .value{font-family:'Bebas Neue'; font-size:44px; color:var(--gold); text-shadow:0 0 20px rgba(255,203,71,.4);}
+
+.status-pill{font-size:11px; font-weight:800; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:.5px;}
+.status-hidden{background:#232a44; color:#8fa3ff;}
+.status-found{background:#4a1522; color:var(--bad);}
+.status-liberated{background:#0f3a30; color:var(--good);}
+
+.round-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;}
+.round-header .r{font-family:'Bebas Neue'; font-size:34px; color:var(--pink);}
+.round-header .meta{text-align:right; font-size:13px; color:var(--dim);}
+.round-header .meta b{color:var(--text); display:block; font-size:15px;}
+
+.player-round-row{display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(180deg,#1c1e30,var(--bg2)); border-radius:14px; margin-bottom:8px; border:1px solid var(--line); border-top-color:#363954;}
+.pr-avatar{width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0; box-shadow:0 0 0 2px var(--line);}
+.pr-avatar-fallback{width:34px; height:34px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--pink),var(--cyan)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; box-shadow:0 0 0 2px var(--line);}
+.player-round-row .name{flex:1; font-weight:700;}
+.player-round-row .actions{display:flex; gap:6px;}
+.mini-btn{padding:8px 10px; border-radius:10px; border:none; font-size:12px; font-weight:700; cursor:pointer;}
+.mini-btn.find{background:var(--panel2); color:var(--text);}
+.mini-btn.lib{background:linear-gradient(135deg,var(--cyan),#1bc2ab); color:#00251f;}
+
+.leader-row{display:flex; align-items:center; gap:12px; padding:12px 14px; background:linear-gradient(180deg,#1c1e30,var(--bg2)); border-radius:14px; margin-bottom:8px; border:1px solid var(--line); border-top-color:#363954; box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
+.leader-row .rank{font-family:'Orbitron',sans-serif; font-weight:900; font-size:20px; width:30px; color:var(--dim); text-align:center;}
+.leader-row .info{flex:1; min-width:0;}
+.leader-row .info .top{display:flex; justify-content:space-between; align-items:center; font-weight:700; gap:8px;}
+.leader-row .info .top .pts{font-family:'Orbitron',sans-serif; font-weight:700; color:var(--gold); font-size:15px; flex-shrink:0;}
+.leader-row .bar{height:6px; border-radius:6px; background:var(--panel2); margin-top:6px; overflow:hidden; box-shadow:inset 0 1px 2px rgba(0,0,0,.4);}
+.leader-row .bar > div{height:100%; background:linear-gradient(90deg,var(--pink),var(--gold)); box-shadow:0 0 8px rgba(255,203,71,.5);}
+.pin-avatar{width:44px; height:44px; border-radius:50%; flex-shrink:0; object-fit:cover; border:2px solid var(--panel2); box-shadow:0 0 0 2px var(--line), 0 3px 8px rgba(0,0,0,.4);}
+.pin-avatar-fallback{width:44px; height:44px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--pink),var(--cyan)); display:flex; align-items:center; justify-content:center; font-weight:800; box-shadow:0 0 0 2px var(--line), 0 3px 8px rgba(0,0,0,.4);}
+.extreme-tag{background:linear-gradient(135deg,var(--gold),var(--pink)); color:#2b1900; font-size:10px; font-weight:800; padding:3px 8px; border-radius:10px; margin-left:6px;}
+
+.bottomnav{
+  position:fixed; bottom:0; left:0; right:0; z-index:40;
+  background:rgba(18,19,31,.92); backdrop-filter:blur(10px); border-top:1px solid var(--line);
+  display:flex; justify-content:space-around; padding:8px 4px calc(8px + env(safe-area-inset-bottom,0px));
+  max-width:720px; margin:0 auto;
+}
+.bottomnav button{background:none; border:none; color:var(--dim); font-size:10px; font-weight:700; display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 6px; cursor:pointer;}
+.bottomnav button .ic{font-size:19px;}
+.bottomnav button.active{color:var(--pink);}
+
+.overlay{position:fixed; inset:0; background:rgba(4,4,8,.72); backdrop-filter:blur(4px); z-index:100; display:flex; align-items:flex-end; justify-content:center;}
+.overlay.center{align-items:center; padding:16px;}
+.sheet{width:100%; max-width:720px; background:var(--panel); border-radius:22px 22px 0 0; padding:20px; box-shadow:0 -10px 40px rgba(0,0,0,.5); max-height:88vh; overflow-y:auto;}
+.overlay.center .sheet{border-radius:22px;}
+.sheet .close-row{display:flex; justify-content:flex-end;}
+.sheet .x{background:none; border:none; color:var(--dim); font-size:22px; cursor:pointer;}
+
+.facade-wrap{display:flex; flex-direction:column; align-items:center; padding:10px 0 20px; touch-action:none;}
+.facade-stage{position:relative; width:230px; height:330px; perspective:1000px;}
+.facade{
+  position:absolute; inset:0; border-radius:20px;
+  background:linear-gradient(160deg,#22243a,#14152233);
+  background-color:#1c1e33;
+  border:1px solid var(--line);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  box-shadow:0 20px 40px rgba(0,0,0,.5);
+  cursor:grab; will-change:transform;
+}
+.facade .big{font-size:44px;}
+.facade .who{font-family:'Bebas Neue'; font-size:26px; color:var(--gold);}
+.facade .hint{color:var(--dim); font-size:12px; text-align:center; padding:0 20px;}
+.facade .arrow{font-size:22px; color:var(--pink); animation:bob 1.4s infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);}}
+.card-face{
+  position:absolute; inset:0; border-radius:20px; padding:22px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px;
+  border:1px solid var(--line);
+}
+.card-face.good{background:linear-gradient(160deg,#0f3a30,#0a2620);}
+.card-face.bad{background:linear-gradient(160deg,#3a1522,#26101a);}
+.card-face .tag{font-size:34px;}
+.card-face .title{font-family:'Bebas Neue'; font-size:24px;}
+.card-face .body{font-size:13px; color:#d8d9ec; line-height:1.5;}
+
+.timer-box{display:flex; flex-direction:column; align-items:center; gap:14px; padding:10px 0;}
+.timer-display{font-family:'Bebas Neue'; font-size:80px; color:var(--gold); text-shadow:0 0 30px rgba(255,203,71,.35);}
+.timer-presets{display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
+.timer-presets button{padding:10px 16px; border-radius:12px; border:1px solid var(--line); background:var(--panel2); color:var(--text); font-weight:700; cursor:pointer;}
+.timer-controls{display:flex; gap:10px;}
+.timer-controls button{flex:1;}
+
+.hist-round{margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid var(--line);}
+.hist-round:last-child{border-bottom:none;}
+.hist-round h4{margin:0 0 8px; font-family:'Bebas Neue'; font-size:20px; color:var(--pink);}
+.hist-line{font-size:13px; color:var(--dim); margin-bottom:3px;}
+.hist-line b{color:var(--text);}
+
+.stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.stat-card{background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:14px;}
+.stat-card .k{font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:1px;}
+.stat-card .v{font-family:'Bebas Neue'; font-size:22px; margin-top:4px;}
+.stat-card .v small{font-size:13px; color:var(--dim); font-family:'Inter'; font-weight:600;}
+
+.toggle-row{display:flex; align-items:center; justify-content:space-between; padding:14px 4px; border-bottom:1px solid var(--line);}
+.switch{width:46px; height:26px; border-radius:20px; background:var(--panel2); position:relative; cursor:pointer; flex-shrink:0;}
+.switch.on{background:var(--cyan);}
+.switch .knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s ease;}
+.switch.on .knob{left:23px;}
+
+.rules-block{margin-bottom:18px;}
+.rules-block h4{color:var(--cyan); font-size:16px; margin-bottom:4px;}
+.rules-block p{font-size:13.5px; color:#c9cbe6; line-height:1.6; margin:4px 0;}
+
+.momento{text-align:center; padding:30px 10px;}
+.momento .flame{font-size:48px;}
+.momento h2{color:var(--gold); font-size:30px; margin:6px 0;}
+.momento p{color:var(--dim); font-size:15px;}
+
+.victory{text-align:center; padding:60px 10px 20px;}
+.victory .cups{font-size:44px;}
+.victory h1{color:var(--gold); font-size:52px; margin:10px 0 0;}
+.victory .name{font-family:'Bebas Neue'; font-size:44px; color:var(--pink); margin:6px 0;}
+.victory .pts{color:var(--dim); font-size:18px;}
+
+.toast{position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--line); padding:12px 20px; border-radius:14px; font-weight:600; font-size:14px; z-index:200; box-shadow:var(--shadow); max-width:88%; text-align:center;}
+
+.badge-locked{background:#2a2c42; color:var(--dim); border:1px dashed var(--line);}
+.presenter-big{text-align:center; padding:10px 0 20px;}
+.presenter-big .r{font-family:'Bebas Neue'; font-size:60px; color:var(--pink);}
+.presenter-big .searcher{font-family:'Bebas Neue'; font-size:38px; color:var(--gold);}
+
+.sound-toggle-fab{position:fixed; top:14px; right:14px; z-index:50; background:var(--panel2); border:1px solid var(--line); color:var(--text); width:38px; height:38px; border-radius:50%; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+
+.next-fab{
+  position:fixed; right:14px; bottom:calc(84px + env(safe-area-inset-bottom,0px)); z-index:60;
+  background:linear-gradient(135deg,var(--pink),var(--gold)); color:#fff; border:none; cursor:pointer;
+  font-family:'Inter'; font-weight:800; font-size:14px; padding:15px 20px; border-radius:30px;
+  box-shadow:0 10px 28px rgba(214,69,69,.5); animation:fabpulse 1.8s infinite;
+}
+.next-fab:active{transform:scale(.96);}
+@keyframes fabpulse{0%,100%{box-shadow:0 10px 28px rgba(214,69,69,.5);} 50%{box-shadow:0 10px 38px rgba(214,69,69,.85);}}
+#nextRoundFab{
+  position:fixed; right:14px; bottom:calc(84px + env(safe-area-inset-bottom,0px)); z-index:45;
+  display:none; align-items:center; gap:8px; padding:14px 20px; border:none; border-radius:30px;
+  background:linear-gradient(135deg,var(--pink),var(--gold)); color:#fff; font-family:'Inter'; font-weight:800; font-size:15px;
+  box-shadow:0 10px 28px rgba(214,69,69,.5); cursor:pointer; animation:fabpulse 1.8s infinite;
+}
+#nextRoundFab:active{transform:scale(.96);}
+@keyframes fabpulse{0%,100%{box-shadow:0 10px 28px rgba(255,46,99,.45);} 50%{box-shadow:0 10px 38px rgba(255,46,99,.85);}}
+.searcher-banner{
+  position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-140%);
+  z-index:300; display:flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg,#191a2c,#232544); border:1px solid var(--gold);
+  border-radius:18px; padding:10px 20px 10px 10px; box-shadow:0 14px 34px rgba(0,0,0,.55), 0 0 0 1px rgba(255,203,71,.15);
+  transition:transform .45s cubic-bezier(.2,.85,.25,1.3);
+  max-width:92vw;
+}
+.searcher-banner.show{transform:translateX(-50%) translateY(0);}
+.searcher-banner img, .searcher-banner .fallback{width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); flex-shrink:0;}
+.searcher-banner .fallback{background:linear-gradient(135deg,var(--pink),var(--cyan)); display:flex; align-items:center; justify-content:center; font-weight:800;}
+.searcher-banner .txt .name{font-family:'Bebas Neue'; font-size:18px; color:var(--gold); line-height:1;}
+.searcher-banner .txt .action{font-size:13px; color:var(--text); font-weight:700; margin-top:2px;}
+@media (min-width:760px){
+  #nextRoundFab{bottom:28px; right:28px;}
+  .next-fab{bottom:24px; right:24px;}
+  .topbar{display:flex;}
+  .bottomnav{display:none;}
+  main{padding-bottom:40px;}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="topbar">
+    <div class="brand">🎮 ESCONDIDIJO</div>
+    <div class="topnav" id="topnav"></div>
+  </div>
+
+  <button class="sound-toggle-fab" id="soundFab" onclick="toggleSound()">🔊</button>
+
+  <main id="main"></main>
+
+  <nav class="bottomnav" id="bottomnav"></nav>
+  <button id="nextRoundFab" onclick="nextRoundFromMoment()">➡️ SIGUIENTE RONDA</button>
+</div>
+<div id="overlays"></div>
+<div id="toastHost"></div>
+
+<script>
+/* =========================================================
+   ESCONDIDIJO EXTREMO — LÓGICA COMPLETA
+   ========================================================= */
+
+const CARDS = [
+  {id:1, type:'good', title:'SEGUNDO ESCONDITE', emoji:'🟢', text:'Si te encuentran, tienes 15 segundos para encontrar un nuevo escondite. Durante esos 15 segundos, el Buscador NO puede perseguirte. Cuando encuentres tu nuevo escondite, debes permanecer allí.'},
+  {id:2, type:'bad', title:'ESTATUA', emoji:'🔴', text:'Cuando te encuentren, debes quedarte completamente quieto durante 5 segundos. Después puedes intentar liberarte normalmente.'},
+  {id:3, type:'bad', title:'GRITO EXTREMO', emoji:'🔴', text:'Mientras estés escondido, debes gritar tu nombre durante 5 segundos para darle una pista al Buscador. Después puedes quedarte escondido o cambiar de posición.'},
+  {id:4, type:'bad', title:'CAMINO LENTO', emoji:'🔴', text:'Durante 10 segundos no puedes correr. Puedes caminar normalmente e intentar escapar.'},
+  {id:5, type:'bad', title:'CAMBIO OBLIGATORIO', emoji:'🔴', text:'Debes abandonar tu escondite y encontrar otro en 10 segundos. El Buscador no puede perseguirte durante los primeros 3 segundos.'},
+  {id:6, type:'bad', title:'ESCÓNDETE OTRA VEZ', emoji:'🔴', text:'Cuando te encuentren, tienes 10 segundos para buscar otro escondite. El Buscador puede perseguirte. Si consigues esconderte sin que vuelva a encontrarte, quedas libre.'},
+  {id:7, type:'bad', title:'SONIDO EXTRAÑO', emoji:'🔴', text:'Mientras estés escondido, debes hacer durante 3 segundos un sonido extraño que no sea un grito normal (MEOWWW, GÑÑÑÑ, BRRRRR, PI PI PI...). No puedes gritar "AAAAAA" ni decir una palabra normal. Después puedes quedarte escondido o cambiar de posición.'},
+  {id:8, type:'bad', title:'PAUSA', emoji:'🔴', text:'Cuando te encuentren, debes esperar 5 segundos antes de poder moverte. Después puedes intentar escapar normalmente.'},
+  {id:9, type:'bad', title:'DOS CAMINOS', emoji:'🔴', text:'Cuando te encuentren debes elegir: A) Esperar 5 segundos antes de moverte. B) Salir inmediatamente, pero durante los primeros 5 segundos solo puedes caminar. Tú decides qué opción te conviene más.'},
+  {id:10, type:'bad', title:'VUELTA ATRÁS', emoji:'🔴', text:'Cuando te encuentren, debes retroceder hasta un punto que elijas antes de poder escapar. Puedes elegir el camino que quieras para llegar hasta allí.'},
+  {id:11, type:'bad', title:'ÚLTIMO INTENTO', emoji:'🔴', text:'Cuando te encuentren tienes 5 segundos para elegir: ESCAPAR (correr inmediatamente hacia el Punto de Liberación) o ESCONDERTE (encontrar un escondite cercano y permanecer allí durante 10 segundos).'}
+];
+
+const SAVE_KEY = 'escondidijo_extremo_save_v1';
+
+function freshState(){
+  return {
+    screen:'home',
+    players:[], // {id,name,points,liberations,foundCount,rescues,rescuedCount,streak,extremeMode,extremeRoundsLeft,lastLiberationBonusAt}
+    round:0,
+    currentSearcherId:null,
+    lastSearcherId:null,
+    liberationPoint:'',
+    roundData:null, // {statuses:{id:'hidden'|'found'|'liberated'}, cards:{id:cardId}, firstLiberatorId, rescuedThisRound:Set, lastFoundId}
+    rescueLocks:{}, // liberatorId -> {targetId: roundsLeft}
+    finalHunt:{active:false, triggerRound:null},
+    winner:null,
+    history:[], // round summaries
+    tempSelectedPlayer:null,
+    pendingNextRound:false,
+    stats:{},
+    settings:{sound:true, animations:true},
+    undoStack:[],
+    _timer:{seconds:0, running:false, initial:0}
+  };
+}
+
+const _loadedSave = loadFromStorage();
+let state = _loadedSave || freshState();
+if(_loadedSave) saveGame();
+let audioCtx = null;
+let wheelLocked = false; // nunca se guarda: se resetea siempre al entrar a la ruleta
+
+/* ---------------- persistence ---------------- */
+function saveGame(){
+  try{
+    const { undoStack, _timer, ...toSave } = state;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(toSave));
+  }catch(e){ console.warn('No se pudo guardar', e); }
+}
+function loadFromStorage(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    data.undoStack = [];
+    data._timer = {seconds:0, running:false, initial:0};
+    return data;
+  }catch(e){ return null; }
+}
+function loadGame(){
+  const s = loadFromStorage();
+  if(s){ state = s; render(); showToast('Partida cargada'); }
+}
+function deleteSave(){
+  localStorage.removeItem(SAVE_KEY);
+  state = freshState();
+  render();
+}
+
+/* ---------------- undo ---------------- */
+function pushUndo(){
+  const { undoStack: _u, _timer: _t, ...rest } = state;
+  const snap = JSON.stringify(rest);
+  state.undoStack = state.undoStack || [];
+  state.undoStack.push(snap);
+  if(state.undoStack.length > 12) state.undoStack.shift();
+}
+function undoLastAction(){
+  if(!state.undoStack || state.undoStack.length===0){ showToast('Nada que deshacer'); return; }
+  const prev = state.undoStack.pop();
+  const stack = state.undoStack;
+  state = JSON.parse(prev);
+  state.undoStack = stack;
+  state._timer = {seconds:0, running:false, initial:0};
+  saveGame();
+  render();
+  showToast('Acción deshecha ↩️');
+}
+
+/* ---------------- sound (Web Audio API) ---------------- */
+function ensureAudio(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  }
+  if(audioCtx && audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+function tone(ctx,freq,start,dur,type='sine',gain=0.18){
+  const o = ctx.createOscillator();
+  const g = ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, ctx.currentTime+start);
+  g.gain.setValueAtTime(0, ctx.currentTime+start);
+  g.gain.linearRampToValueAtTime(gain, ctx.currentTime+start+0.02);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+start+dur);
+  o.connect(g); g.connect(ctx.destination);
+  o.start(ctx.currentTime+start);
+  o.stop(ctx.currentTime+start+dur+0.05);
+}
+function noiseBurst(ctx,start,dur,gain=0.12){
+  const bufferSize = ctx.sampleRate*dur;
+  const buffer = ctx.createBuffer(1,bufferSize,ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++) data[i]=(Math.random()*2-1)*(1-i/bufferSize);
+  const src = ctx.createBufferSource(); src.buffer=buffer;
+  const g = ctx.createGain(); g.gain.setValueAtTime(gain, ctx.currentTime+start);
+  src.connect(g); g.connect(ctx.destination);
+  src.start(ctx.currentTime+start);
+}
+function playUiSound(kind){
+  if(!state.settings.sound) return;
+  const ctx = ensureAudio(); if(!ctx) return;
+  if(kind==='click') tone(ctx,600,0,0.08,'square',0.08);
+  else if(kind==='point') { tone(ctx,880,0,0.12,'triangle',0.15); tone(ctx,1100,0.08,0.15,'triangle',0.12); }
+  else if(kind==='liberate') { tone(ctx,660,0,0.1,'sine',0.15); tone(ctx,990,0.09,0.2,'sine',0.15); }
+  else if(kind==='rescue') { tone(ctx,520,0,0.1,'sine',0.15); tone(ctx,780,0.08,0.1,'sine',0.15); tone(ctx,1040,0.16,0.2,'sine',0.15); }
+  else if(kind==='extreme') { tone(ctx,220,0,0.3,'sawtooth',0.12); tone(ctx,440,0.1,0.3,'sawtooth',0.1); }
+  else if(kind==='lasthunt') { tone(ctx,180,0,0.4,'square',0.15); noiseBurst(ctx,0,0.4,0.08); }
+  else if(kind==='victory') { [523,659,784,1046].forEach((f,i)=>tone(ctx,f,i*0.13,0.3,'triangle',0.16)); }
+  else if(kind==='wheel') { for(let i=0;i<8;i++) tone(ctx,300+i*40,i*0.18,0.1,'square',0.06); }
+  else if(kind==='timer') tone(ctx,900,0,0.06,'square',0.1);
+  else if(kind==='tick') tone(ctx,700,0,0.09,'square',0.1);
+  else if(kind==='go') { tone(ctx,523,0,0.12,'triangle',0.16); tone(ctx,659,0.11,0.12,'triangle',0.16); tone(ctx,784,0.22,0.12,'triangle',0.16); tone(ctx,1046,0.33,0.35,'triangle',0.18); }
+  else if(kind==='ding') { tone(ctx,1568,0,1.4,'sine',0.22); tone(ctx,2093,0,1.0,'sine',0.1); tone(ctx,3136,0,0.6,'sine',0.05); }
+}
+// 6 distinct, misleading reveal effects — independent of card content
+const REVEAL_EFFECTS = [
+  (ctx)=>{ tone(ctx,300,0,0.35,'sawtooth',0.12); tone(ctx,700,0.05,0.25,'sawtooth',0.08); }, // whoosh-ish
+  (ctx)=>{ tone(ctx,1200,0,0.05,'square',0.14); tone(ctx,1500,0.09,0.18,'sine',0.15); }, // click+ding
+  (ctx)=>{ tone(ctx,440,0,0.2,'sine',0.1); tone(ctx,330,0.15,0.25,'sine',0.1); tone(ctx,550,0.3,0.2,'sine',0.1); }, // misterioso
+  (ctx)=>{ tone(ctx,900,0,0.08,'triangle',0.16); }, // pop
+  (ctx)=>{ tone(ctx,660,0,0.12,'sine',0.12); tone(ctx,880,0.1,0.12,'sine',0.12); tone(ctx,1100,0.2,0.2,'sine',0.14); }, // magic
+  (ctx)=>{ noiseBurst(ctx,0,0.15,0.1); tone(ctx,500,0.05,0.15,'square',0.1); } // sorpresa
+];
+function playCardRevealSound(){
+  if(!state.settings.sound) return;
+  const ctx = ensureAudio(); if(!ctx) return;
+  const fx = REVEAL_EFFECTS[Math.floor(Math.random()*REVEAL_EFFECTS.length)];
+  fx(ctx);
+}
+function toggleSound(){
+  state.settings.sound = !state.settings.sound;
+  document.getElementById('soundFab').textContent = state.settings.sound ? '🔊' : '🔇';
+  saveGame();
+  if(state.screen==='settings') render();
+}
+
+/* ---------------- toast ---------------- */
+function showToast(msg){
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className='toast';
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 2200);
+}
+
+/* ---------------- players ---------------- */
+function uid(){ return 'p'+Math.random().toString(36).slice(2,9); }
+function addPlayer(name){
+  name = (name||'').trim();
+  if(!name) return;
+  if(state.players.length>=10){ showToast('Máximo 10 jugadores'); return; }
+  state.players.push({
+    id:uid(), name, points:0, liberations:0, foundCount:0, rescues:0, rescuedCount:0,
+    streak:0, extremeMode:false, extremeRoundsLeft:0, timesSearcher:0, timesLastFound:0
+  });
+  saveGame(); render();
+}
+function removePlayer(id){
+  state.players = state.players.filter(p=>p.id!==id);
+  saveGame(); render();
+}
+function editPlayer(id, newName){
+  const p = state.players.find(p=>p.id===id);
+  if(p && newName.trim()) p.name = newName.trim();
+  saveGame(); render();
+}
+function getPlayer(id){ return state.players.find(p=>p.id===id); }
+
+/* ---------------- fotos de jugadores ---------------- */
+function avatarImgOrFallback(p, cls, fallbackCls){
+  if(p && p.photo){
+    return `<img src="${p.photo}" class="${cls}">`;
+  }
+  return `<div class="${fallbackCls}">${p?p.name.charAt(0).toUpperCase():'?'}</div>`;
+}
+function capturePlayerPhoto(playerId){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  // No forzamos "capture" para que el navegador ofrezca tanto cámara como galería.
+  input.style.position = 'fixed';
+  input.style.left = '-9999px';
+  document.body.appendChild(input);
+  const cleanup = ()=>{ if(input.parentNode) input.parentNode.removeChild(input); };
+  input.addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file){ cleanup(); return; }
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        try{
+          const size = 240;
+          const canvas = document.createElement('canvas');
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const s2 = Math.min(img.width, img.height);
+          const sx = (img.width - s2)/2, sy = (img.height - s2)/2;
+          ctx.drawImage(img, sx, sy, s2, s2, 0, 0, size, size);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          const p = getPlayer(playerId);
+          if(p){ p.photo = dataUrl; saveGame(); render(); showToast('Foto guardada 📷'); }
+        }catch(err){
+          console.warn('No se pudo procesar la foto', err);
+          showToast('No se pudo procesar esa imagen');
+        }
+        cleanup();
+      };
+      img.onerror = ()=>{ showToast('No se pudo leer esa imagen'); cleanup(); };
+      img.src = ev.target.result;
+    };
+    reader.onerror = ()=>{ showToast('No se pudo leer el archivo'); cleanup(); };
+    reader.readAsDataURL(file);
+  });
+  input.addEventListener('cancel', cleanup);
+  input.click();
+}
+
+/* ---------------- banner de acción del Buscador ---------------- */
+function showSearcherBanner(actionText){
+  const searcher = getPlayer(state.currentSearcherId);
+  if(!searcher) return;
+  const host = document.getElementById('toastHost');
+  if(!host) return;
+  const el2 = document.createElement('div');
+  el2.className = 'searcher-banner';
+  el2.innerHTML = (searcher.photo ? `<img src="${searcher.photo}">` : `<div class="fallback">${searcher.name.charAt(0).toUpperCase()}</div>`)
+    + `<div class="txt"><div class="name">${searcher.name.toUpperCase()}</div><div class="action">${actionText}</div></div>`;
+  host.appendChild(el2);
+  requestAnimationFrame(()=>{ el2.classList.add('show'); });
+  setTimeout(()=>{
+    el2.classList.remove('show');
+    setTimeout(()=>el2.remove(), 500);
+  }, 1700);
+}
+
+/* ---------------- roulette ---------------- */
+function eligibleSearchers(){
+  if(state.players.length<=1) return state.players.slice();
+  const others = state.players.filter(p=>p.id!==state.lastSearcherId);
+  return others.length>0 ? others : state.players.slice();
+}
+function spinWheel(){
+  if(wheelLocked) return;
+  wheelLocked = true;
+  const spinBtn = document.getElementById('spinWheelBtn');
+  if(spinBtn) spinBtn.disabled = true;
+  try{
+    playUiSound('wheel');
+    const wheelEl = document.getElementById('wheelEl');
+    const pool = eligibleSearchers();
+    if(!pool || pool.length===0) throw new Error('Sin jugadores disponibles');
+    const winner = pool[Math.floor(Math.random()*pool.length)];
+    const segAngle = 360/pool.length;
+    const winnerIndex = pool.findIndex(p=>p.id===winner.id);
+    const targetAngle = 360*5 + (360 - (winnerIndex*segAngle + segAngle/2)) ;
+    if(wheelEl){
+      wheelEl.style.transform = `rotate(${targetAngle}deg)`;
+    }
+    setTimeout(()=>{
+      state.currentSearcherId = winner.id;
+      winner.timesSearcher = (winner.timesSearcher||0)+1;
+      saveGame();
+      const resEl = document.getElementById('wheelResult');
+      const nameEl = document.getElementById('wheelResultName');
+      if(resEl) resEl.style.display='block';
+      if(nameEl) nameEl.textContent = winner.name.toUpperCase();
+    }, 4050);
+  }catch(e){
+    console.warn('Error al girar la ruleta', e);
+    wheelLocked = false;
+    if(spinBtn) spinBtn.disabled = false;
+    showToast('Hubo un problema, intenta girar de nuevo');
+  }
+}
+
+/* ---------------- round lifecycle ---------------- */
+function goToRoulette(){
+  if(state.players.length<3){ showToast('Se necesitan al menos 3 jugadores'); return; }
+  wheelLocked = false;
+  state.screen='roulette';
+  render();
+}
+function askLiberationPointAndStart(){
+  const input = document.getElementById('liberationInput');
+  const val = (input?.value||'').trim();
+  if(!val){ showToast('Escribe el Punto de Liberación'); return; }
+  state.liberationPoint = val;
+  state.screen = 'countdown';
+  saveGame();
+  render();
+}
+function shuffleCards(){
+  const arr = CARDS.map(c=>c.id);
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function assignCards(hidingPlayers){
+  const shuffled = shuffleCards();
+  const map = {};
+  hidingPlayers.forEach((p,i)=>{ map[p.id] = shuffled[i % shuffled.length] && i < shuffled.length ? shuffled[i] : shuffled[i]; });
+  // ensure no repeats & searcher gets none: since hidingPlayers <=10 and 11 cards, safe
+  hidingPlayers.forEach((p,i)=>{ map[p.id] = shuffled[i]; });
+  return map;
+}
+function startRound(){
+  pushUndo();
+  state.round += 1;
+  const hidingPlayers = state.players.filter(p=>p.id!==state.currentSearcherId);
+  const cardMap = assignCards(hidingPlayers);
+  const statuses = {};
+  hidingPlayers.forEach(p=>{ statuses[p.id] = 'hidden'; });
+  state.roundData = {
+    statuses,
+    cards: cardMap,
+    firstLiberatorId: null,
+    rescueDone: false,
+    lastFoundId: null,
+    log: [] // {playerId,event,points}
+  };
+  state.lastSearcherId = state.currentSearcherId;
+  state.screen = 'round';
+  saveGame();
+  render();
+}
+
+function finishRound(){
+  if(!state.roundData) return;
+  if(hiddenRemaining().length>0){ showToast('Aún quedan jugadores escondidos'); return; }
+  pushUndo();
+  checkRoundEnd();
+  render();
+}
+function hiddenRemaining(){
+  const rd = state.roundData; if(!rd) return [];
+  return Object.keys(rd.statuses).filter(id=>rd.statuses[id]==='hidden');
+}
+
+function openFindModal(){
+  const rd = state.roundData;
+  const hidden = hiddenRemaining();
+  if(hidden.length===0){ showToast('No quedan jugadores escondidos'); return; }
+  renderOverlay('find', {hidden});
+}
+function findPlayer(playerId){
+  pushUndo();
+  const rd = state.roundData;
+  const wasLastHidden = hiddenRemaining().length===1 && hiddenRemaining()[0]===playerId;
+  rd.statuses[playerId] = 'found';
+  const p = getPlayer(playerId);
+  p.foundCount = (p.foundCount||0)+1;
+  // streak breaks on being found (unless later liberated)
+  if(wasLastHidden){
+    rd.lastFoundId = playerId;
+    p.timesLastFound = (p.timesLastFound||0)+1;
+  }
+  // Puntos del Buscador: +1 por cada jugador encontrado
+  const searcher = getPlayer(state.currentSearcherId);
+  if(searcher){
+    const gained = searcher.extremeMode ? 0 : 1;
+    searcher.points += gained;
+    rd.log.push({playerId:searcher.id, event:'buscador_encontro', points:gained});
+    if(gained>0) checkGameStateAfterPoints(searcher);
+  }
+  saveGame();
+  closeOverlay();
+  render();
+  const foundP = getPlayer(playerId);
+  showSearcherBanner(`🔎 ¡Encontró a ${foundP?foundP.name:'alguien'}! +${searcher&&!searcher.extremeMode?1:0}`);
+  if(state.winner) return;
+  const card = CARDS.find(c=>c.id===rd.cards[playerId]);
+  renderOverlay('cardReveal', {playerId, card, mode:'found'});
+}
+
+function openSearcherLiberateModal(){
+  const rd = state.roundData;
+  const trapped = Object.keys(rd.statuses).filter(id=>rd.statuses[id]==='found');
+  if(trapped.length===0){ showToast('No hay jugadores encontrados para liberar'); return; }
+  renderOverlay('searcherLiberate', {trapped});
+}
+function searcherLiberates(targetId){
+  const rd = state.roundData;
+  if(rd.statuses[targetId]!=='found'){ showToast('Ese jugador no está atrapado'); return; }
+  pushUndo();
+  const searcher = getPlayer(state.currentSearcherId);
+  const target = getPlayer(targetId);
+  rd.statuses[targetId] = 'liberated';
+  target.liberations = (target.liberations||0)+1;
+  target.rescuedCount = (target.rescuedCount||0)+1;
+  rd.log.push({playerId:targetId, event:'liberado_por_buscador', points:0});
+  const gained = searcher.extremeMode ? 0 : 2;
+  searcher.points += gained;
+  searcher.rescues = (searcher.rescues||0)+1;
+  rd.log.push({playerId:searcher.id, event:'buscador_libero', points:gained});
+  saveGame();
+  closeOverlay();
+  showSearcherBanner(`🤝 ¡Liberó a ${target.name}! +${gained}`);
+  if(gained>0) checkGameStateAfterPoints(searcher);
+  if(state.winner){ render(); return; }
+  checkRoundEnd();
+  render();
+}
+function openLiberateModal(){
+  const rd = state.roundData;
+  const eligible = Object.keys(rd.statuses).filter(id=>rd.statuses[id]==='hidden'||rd.statuses[id]==='found');
+  if(eligible.length===0){ showToast('No hay jugadores disponibles'); return; }
+  renderOverlay('liberate', {eligible});
+}
+function liberatePlayer(playerId){
+  pushUndo();
+  const rd = state.roundData;
+  const wasFound = rd.statuses[playerId]==='found';
+  const wasLastFound = rd.lastFoundId===playerId;
+  rd.statuses[playerId] = 'liberated';
+  const p = getPlayer(playerId);
+  p.liberations = (p.liberations||0)+1;
+
+  // streak logic
+  p.streak = (p.streak||0)+1;
+  let bonus = 0;
+  if(p.streak>0 && p.streak%3===0 && !p.extremeMode) bonus = 1;
+
+  const base = wasFound ? 2 : 3;
+  const awarded = p.extremeMode ? 0 : (base+bonus);
+  p.points += awarded;
+
+  rd.log.push({playerId, event: wasFound?'liberado_tras_encontrado':'liberado_directo', points:awarded});
+
+  const isFirstLiberator = !rd.firstLiberatorId;
+  if(isFirstLiberator) rd.firstLiberatorId = playerId;
+
+  saveGame();
+  closeOverlay();
+  checkGameStateAfterPoints(p);
+
+  if(isFirstLiberator){
+    const trapped = Object.keys(rd.statuses).filter(id=> rd.statuses[id]==='found' );
+    if(trapped.length>0){
+      renderOverlay('rescue', {liberatorId:playerId, trapped});
+      return;
+    }
+  }
+  checkRoundEnd();
+  render();
+}
+function rescuePlayer(liberatorId, targetId){
+  const rd = state.roundData;
+  if(rd.rescueUsed){ showToast('Ya hubo un rescate en esta ronda'); return; }
+  if(rd.statuses[targetId]!=='found'){ showToast('Ese jugador no está atrapado'); return; }
+  pushUndo();
+  rd.rescueUsed = true;
+  rd.statuses[targetId] = 'liberated';
+  rd.rescueDone = true;
+  const target = getPlayer(targetId);
+  const liberator = getPlayer(liberatorId);
+  target.liberations = (target.liberations||0)+1;
+  target.rescuedCount = (target.rescuedCount||0)+1;
+  liberator.rescues = (liberator.rescues||0)+1;
+  // lock: liberator can't rescue this same target for next 3 rounds
+  state.rescueLocks[liberatorId] = state.rescueLocks[liberatorId] || {};
+  state.rescueLocks[liberatorId][targetId] = 3;
+
+  rd.log.push({playerId:targetId, event:'rescatado_por_'+liberator.name, points:0});
+  saveGame();
+  closeOverlay();
+  showToast(`${liberator.name} liberó a ${target.name} 🤝`);
+  checkRoundEnd();
+  render();
+}
+function searcherFreesPlayer(playerId){
+  const rd = state.roundData;
+  if(!rd || rd.statuses[playerId]!=='found') return;
+  pushUndo();
+  rd.statuses[playerId] = 'liberated';
+  const p = getPlayer(playerId);
+  p.streak = 0; // no se liberó por sí mismo
+  const searcher = getPlayer(state.currentSearcherId);
+  rd.log.push({playerId, event:'liberado_por_buscador', points:0});
+  saveGame();
+  closeOverlay();
+  showToast(`${searcher?searcher.name:'El Buscador'} liberó a ${p.name} 🔎`);
+  checkRoundEnd();
+  render();
+}
+function isRescueLocked(liberatorId, targetId){
+  const locks = state.rescueLocks[liberatorId];
+  return !!(locks && locks[targetId] && locks[targetId]>0);
+}
+
+function checkGameStateAfterPoints(p){
+  if(p.points>=9 && !p.extremeMode && p.extremeRoundsLeft===undefined) p.extremeRoundsLeft=0;
+  if(p.points>=9 && !p.extremeMode && p.points<12){
+    p.extremeMode = true;
+    p.extremeRoundsLeft = 3;
+    playUiSound('extreme');
+    showToast(`👑 ${p.name} entra en MODO EXTREMO`);
+  } else {
+    playUiSound('point');
+  }
+  if(p.points>=10 && !state.finalHunt.active){
+    state.finalHunt.active = true;
+    state.finalHunt.triggerRound = state.round;
+    playUiSound('lasthunt');
+    showToast('🚨 ÚLTIMA CAZA ACTIVADA');
+  }
+  if(p.points>=12 && !p.extremeMode){
+    declareWinner(p);
+  }
+}
+function declareWinner(p){
+  state.pendingNextRound = false;
+  state.winner = p.id;
+  state.screen='victory';
+  playUiSound('victory');
+  saveGame();
+}
+
+function decrementExtremeAndRescueLocks(){
+  state.players.forEach(p=>{
+    if(p.extremeMode){
+      p.extremeRoundsLeft -= 1;
+      if(p.extremeRoundsLeft<=0){
+        p.extremeMode=false;
+        p.extremeRoundsLeft=0;
+        showToast(`${p.name} sale de Modo Extremo`);
+        if(p.points>=12){ declareWinner(p); }
+      }
+    }
+  });
+  Object.keys(state.rescueLocks).forEach(lib=>{
+    Object.keys(state.rescueLocks[lib]).forEach(tgt=>{
+      state.rescueLocks[lib][tgt] -= 1;
+      if(state.rescueLocks[lib][tgt]<=0) delete state.rescueLocks[lib][tgt];
+    });
+  });
+}
+
+function checkRoundEnd(){
+  if(hiddenRemaining().length>0) return;
+  const rd = state.roundData;
+  // resolve any found-not-liberated players
+  Object.keys(rd.statuses).forEach(id=>{
+    if(rd.statuses[id]==='found'){
+      const p = getPlayer(id);
+      p.streak = 0; // streak broken
+      const isLast = rd.lastFoundId===id;
+      const awarded = p.extremeMode ? 0 : (isLast?1:0);
+      p.points += awarded;
+      rd.log.push({playerId:id, event: isLast?'ultimo_encontrado':'encontrado_no_liberado', points:awarded});
+      if(awarded>0) checkGameStateAfterPoints(p);
+    } else if(rd.statuses[id]==='liberated'){
+      // streak already updated at liberation time
+    }
+  });
+  const _s = getPlayer(state.currentSearcherId); if(_s) _s.streak = 0;
+  // build history entry
+  const entry = {
+    round: state.round,
+    searcherId: state.currentSearcherId,
+    liberationPoint: state.liberationPoint,
+    log: rd.log.slice(),
+    cards: {...rd.cards},
+    statuses: {...rd.statuses}
+  };
+  state.history.push(entry);
+  decrementExtremeAndRescueLocks();
+  saveGame();
+
+  if(state.winner){ return; }
+  if(state.finalHunt.active && state.round > state.finalHunt.triggerRound){
+    finishGameByLastHunt();
+    return;
+  }
+  showMomentOfRound(entry);
+}
+function computeMomentOfRound(entry){
+  const opts = [];
+  if(entry.lastFoundId===undefined){}
+  const lastFound = Object.keys(entry.statuses).find(id=>state.roundData && state.roundData.lastFoundId===id);
+  const rd = state.roundData;
+  if(rd.lastFoundId){
+    const p = getPlayer(rd.lastFoundId);
+    if(p) opts.push(`${p.name.toUpperCase()} fue el último jugador encontrado.`);
+  }
+  const notFound = state.players.filter(p=> entry.statuses[p.id]==='liberated' && !entry.log.find(l=>l.playerId===p.id && l.event==='liberado_tras_encontrado'));
+  if(notFound.length>0){
+    const pick = notFound[Math.floor(Math.random()*notFound.length)];
+    opts.push(`${pick.name.toUpperCase()} no fue encontrado y se liberó sin ser visto.`);
+  }
+  const rescuer = entry.log.find(l=>l.event && l.event.startsWith('rescatado_por_'));
+  if(rescuer){
+    opts.push(`Hubo un rescate heroico que cambió la ronda.`);
+  }
+  const topScorer = [...state.players].sort((a,b)=>b.points-a.points)[0];
+  if(topScorer) opts.push(`${topScorer.name.toUpperCase()} lidera la clasificación con ${topScorer.points} puntos.`);
+  if(opts.length===0) opts.push('Ronda completada sin grandes sorpresas.');
+  return opts[Math.floor(Math.random()*opts.length)];
+}
+function showMomentOfRound(entry){
+  const msg = computeMomentOfRound(entry);
+  state.screen='moment';
+  state.pendingNextRound = true;
+  state._momentMsg = msg;
+  saveGame();
+  render();
+}
+function finishGameByLastHunt(){
+  const sorted = [...state.players].sort((a,b)=>b.points-a.points);
+  const top = sorted[0];
+  const tied = sorted.filter(p=>p.points===top.points);
+  if(tied.length>1){
+    state.screen='tiebreak';
+    state._tied = tied.map(p=>p.id);
+    saveGame(); render();
+  } else {
+    declareWinner(top);
+    render();
+  }
+}
+function roundIsFinished(){
+  if(!state.roundData || state.winner) return false;
+  if(Object.keys(state.roundData.statuses).length===0) return false;
+  if(hiddenRemaining().length>0) return false;
+  const last = state.history[state.history.length-1];
+  return !!last && last.round===state.round;
+}
+function updateNextRoundFab(){
+  const fab = document.getElementById('nextRoundFab');
+  if(!fab) return;
+  const navScreens = ['round','leaderboard','cards','history','stats','rules','settings','presenter'];
+  fab.style.display = (navScreens.includes(state.screen) && roundIsFinished()) ? 'flex' : 'none';
+}
+function nextRoundFromMoment(){
+  state.pendingNextRound = false;
+  state.roundData = null;
+  state.tempSelectedPlayer=null;
+  wheelLocked = false;
+  state.screen='roulette';
+  render();
+}
+
+
+/* ---------------- cuenta del Buscador ---------------- */
+let cdHandles = [];
+let cdInterval = null;
+function clearCountdown(){
+  cdHandles.forEach(h=>clearTimeout(h));
+  cdHandles = [];
+  if(cdInterval){ clearInterval(cdInterval); cdInterval=null; }
+}
+function renderCountdownScreen(){
+  const searcher = getPlayer(state.currentSearcherId);
+  return el(`
+    <div style="text-align:center;">
+      <h2>⏳ HORA DE CONTAR</h2>
+      <div class="card-box" id="cdBox" style="padding:30px 16px;">
+        <div style="color:var(--dim); font-size:13px;">🔎 Cuenta ${searcher?searcher.name:'el Buscador'} desde 📍 ${state.liberationPoint}</div>
+        <div id="cdMain" class="display" style="font-size:96px; color:var(--gold); margin:18px 0 6px; text-shadow:0 0 30px rgba(255,203,71,.35);">🙈</div>
+        <div id="cdSub" style="color:var(--dim); font-size:15px; min-height:22px;">Cuando pulses el botón empieza la cuenta atrás.</div>
+      </div>
+      <button class="btn btn-primary" id="cdStartBtn" onclick="startCounting()">▶ COMENZAR A CONTAR</button>
+      <button class="btn btn-ghost" id="cdBackBtn" onclick="goTo('liberationPoint')">⬅ Volver</button>
+    </div>`);
+}
+function setCd(main, sub, color){
+  const m = document.getElementById('cdMain'); const s2 = document.getElementById('cdSub');
+  if(m){ m.textContent = main; m.style.color = color || 'var(--gold)'; }
+  if(s2) s2.textContent = sub;
+}
+function startCounting(){
+  clearCountdown();
+  ensureAudio();
+  const btn = document.getElementById('cdStartBtn'); if(btn) btn.style.display='none';
+  const back = document.getElementById('cdBackBtn'); if(back) back.style.display='none';
+  setCd('3','Prepárate...'); playUiSound('tick');
+  cdHandles.push(setTimeout(()=>{ setCd('2','Prepárate...'); playUiSound('tick'); }, 1000));
+  cdHandles.push(setTimeout(()=>{ setCd('1','Prepárate...'); playUiSound('tick'); }, 2000));
+  cdHandles.push(setTimeout(()=>{
+    playUiSound('go');
+    const TOTAL = 50;
+    const end = Date.now() + TOTAL*1000;
+    let lastShown = -1;
+    const update = ()=>{
+      const left = Math.max(0, Math.ceil((end-Date.now())/1000));
+      if(left===lastShown) return;
+      lastShown = left;
+      if(left>0){
+        setCd(String(left), '🙈 ¡TÁPATE LOS OJOS! Los demás, a esconderse.', left<=5 ? 'var(--pink)' : 'var(--gold)');
+      } else {
+        clearInterval(cdInterval); cdInterval=null;
+        playUiSound('ding');
+        setCd('🔔','¡TIEMPO! ¡Listos o no, allá voy!','var(--cyan)');
+        cdHandles.push(setTimeout(()=>{ startRound(); }, 1600));
+      }
+    };
+    update();
+    cdInterval = setInterval(update, 200);
+  }, 3000));
+}
+
+/* ---------------- timers ---------------- */
+let timerInterval=null;
+function startCustomTimer(seconds){
+  clearInterval(timerInterval);
+  state._timer = {seconds, initial:seconds, running:true};
+  renderTimerUI();
+  timerInterval = setInterval(()=>{
+    if(!state._timer.running) return;
+    state._timer.seconds -= 1;
+    if(state._timer.seconds<=0){
+      state._timer.seconds=0;
+      state._timer.running=false;
+      clearInterval(timerInterval);
+      playUiSound('timer');
+    }
+    renderTimerUI();
+  },1000);
+}
+function pauseTimer(){ state._timer.running = !state._timer.running; renderTimerUI(); }
+function resetTimer(){ clearInterval(timerInterval); state._timer.seconds = state._timer.initial||0; state._timer.running=false; renderTimerUI(); }
+function renderTimerUI(){
+  const disp = document.getElementById('timerDisplay');
+  if(disp) disp.textContent = (state._timer.seconds||0);
+  const pb = document.getElementById('timerPauseBtn');
+  if(pb) pb.textContent = state._timer.running ? '⏸ PAUSAR' : '▶ INICIAR';
+}
+
+/* ---------------- export / import ---------------- */
+function exportGame(){
+  const { undoStack, _timer, ...toExport } = state;
+  const blob = new Blob([JSON.stringify(toExport,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'escondidijo_extremo_partida.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importGameFile(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      data.undoStack = [];
+      data._timer = {seconds:0, running:false, initial:0};
+      state = data;
+      saveGame();
+      render();
+      showToast('Partida importada ✅');
+    }catch(err){ showToast('Archivo inválido'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------------- navigation ---------------- */
+const NAV_ITEMS = [
+  {id:'round', ic:'🎮', label:'PARTIDA'},
+  {id:'leaderboard', ic:'🏆', label:'RANKING'},
+  {id:'cards', ic:'🃏', label:'CARTAS'},
+  {id:'history', ic:'📜', label:'HISTORIAL'},
+  {id:'stats', ic:'📊', label:'STATS'},
+  {id:'rules', ic:'📖', label:'REGLAS'},
+  {id:'settings', ic:'⚙️', label:'AJUSTES'}
+];
+function goTo(screen){ state.screen=screen; state.tempSelectedPlayer=null; render(); }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  if(state.screen!=='countdown') clearCountdown();
+  renderNav();
+  updateNextRoundFab();
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  document.getElementById('soundFab').textContent = state.settings.sound ? '🔊':'🔇';
+  const oldFab = document.getElementById('nextRoundFab'); if(oldFab) oldFab.remove();
+  const noFab = ['home','players','roulette','liberationPoint','countdown','moment','tiebreak','victory'];
+  if(state.pendingNextRound && !state.winner && !noFab.includes(state.screen)){
+    const fab = document.createElement('button');
+    fab.id='nextRoundFab'; fab.className='next-fab';
+    fab.textContent='➡️ SIGUIENTE RONDA';
+    fab.onclick = nextRoundFromMoment;
+    document.body.appendChild(fab);
+  }
+  switch(state.screen){
+    case 'home': main.appendChild(renderHome()); break;
+    case 'players': main.appendChild(renderPlayers()); break;
+    case 'roulette': main.appendChild(renderRoulette()); break;
+    case 'liberationPoint': main.appendChild(renderLiberationPointScreen()); break;
+    case 'countdown': main.appendChild(renderCountdownScreen()); break;
+    case 'round': main.appendChild(renderRoundScreen()); break;
+    case 'leaderboard': main.appendChild(renderLeaderboard()); break;
+    case 'cards': main.appendChild(renderCardsScreen()); break;
+    case 'history': main.appendChild(renderHistory()); break;
+    case 'stats': main.appendChild(renderStats()); break;
+    case 'rules': main.appendChild(renderRules()); break;
+    case 'settings': main.appendChild(renderSettings()); break;
+    case 'presenter': main.appendChild(renderPresenter()); break;
+    case 'moment': main.appendChild(renderMoment()); break;
+    case 'tiebreak': main.appendChild(renderTiebreak()); break;
+    case 'victory': main.appendChild(renderVictory()); break;
+    default: main.appendChild(renderHome());
+  }
+}
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; }
+
+function renderNav(){
+  const showNav = !['home','players','roulette','liberationPoint','countdown','moment','tiebreak','victory'].includes(state.screen);
+  const bottom = document.getElementById('bottomnav');
+  const top = document.getElementById('topnav');
+  if(!showNav){ bottom.innerHTML=''; top.innerHTML=''; return; }
+  bottom.innerHTML = NAV_ITEMS.map(n=>`
+    <button class="${state.screen===n.id?'active':''}" onclick="goTo('${n.id}')">
+      <span class="ic">${n.ic}</span><span>${n.label}</span>
+    </button>`).join('');
+  top.innerHTML = NAV_ITEMS.map(n=>`<button class="${state.screen===n.id?'active':''}" onclick="goTo('${n.id}')">${n.ic} ${n.label}</button>`).join('')
+    + `<button onclick="goTo('presenter')" class="${state.screen==='presenter'?'active':''}">📺 PRESENTADOR</button>`;
+}
+
+function renderHome(){
+  const hasSave = !!loadFromStorage();
+  return el(`
+  <div class="hero">
+    <div class="marquee-lights"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="logo">🎳</div>
+    <h1 style="font-size:44px; margin:6px 0 0;">ESCONDIDIJO EXTREMO</h1>
+    <div class="tag">Escondidas + cartas + estrategia + suerte + retos</div>
+    <div class="marquee-lights" style="margin-top:10px;"><span></span><span></span><span></span><span></span><span></span></div>
+    <div style="margin-top:34px;">
+      <button class="btn btn-primary" onclick="startNewGame()">▶ NUEVA PARTIDA</button>
+      <button class="btn btn-secondary" onclick="goTo('rules')">📖 REGLAS</button>
+      <button class="btn btn-ghost" ${hasSave?'':'disabled'} onclick="loadGame()">📜 CONTINUAR PARTIDA</button>
+    </div>
+  </div>`);
+}
+function startNewGame(){
+  if(loadFromStorage()){
+    renderOverlay('confirmNewGame', {});
+    return;
+  }
+  state = freshState();
+  state.screen='players';
+  render();
+}
+function confirmNewGame(){
+  state = freshState();
+  state.screen='players';
+  closeOverlay();
+  render();
+}
+
+function renderPlayers(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h2>👥 JUGADORES</h2>`));
+  wrap.appendChild(el(`<div style="color:var(--dim); font-size:13px; margin:-6px 0 14px;">Toca el ícono 📷 para tomarle una foto tipo carnet a cada jugador.</div>`));
+  const box = el(`
+    <div class="card-box">
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="newPlayerInput" placeholder="Escribe un nombre...">
+        <button class="btn btn-cyan" style="width:auto; padding:14px 18px; margin:0;" id="addPlayerBtn">➕</button>
+      </div>
+    </div>`);
+  wrap.appendChild(box);
+  box.querySelector('#addPlayerBtn').onclick = ()=>{
+    const inp = document.getElementById('newPlayerInput');
+    addPlayer(inp.value);
+  };
+  box.querySelector('#newPlayerInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ addPlayer(e.target.value); }});
+
+  const list = el(`<div></div>`);
+  state.players.forEach(p=>{
+    const row = el(`
+      <div class="player-row">
+        ${p.photo ? `<img src="${p.photo}" class="avatar">` : `<div class="avatar">${p.name.charAt(0).toUpperCase()}</div>`}
+        <div class="name">${p.name}</div>
+        <button class="icon-btn" title="Subir foto">🖼️</button>
+        <button class="icon-btn" title="Editar nombre">✏️</button>
+        <button class="icon-btn" title="Eliminar">🗑️</button>
+      </div>`);
+    const [photoBtn, editBtn, delBtn] = row.querySelectorAll('.icon-btn');
+    photoBtn.onclick = ()=> capturePlayerPhoto(p.id);
+    editBtn.onclick = ()=>{
+      renderOverlay('editName', {id:p.id, name:p.name});
+    };
+    delBtn.onclick = ()=> removePlayer(p.id);
+    list.appendChild(row);
+  });
+  wrap.appendChild(list);
+  const info = el(`<div style="color:var(--dim); font-size:13px; margin:10px 0;">Mínimo 3 jugadores · Recomendado 5–7 · Máximo 10</div>`);
+  wrap.appendChild(info);
+  const cont = el(`<button class="btn btn-primary">➡️ CONTINUAR</button>`);
+  cont.disabled = state.players.length<3;
+  cont.onclick = ()=> goToRoulette();
+  wrap.appendChild(cont);
+  wrap.appendChild(el(`<button class="btn btn-ghost" onclick="goTo('home')">⬅ Volver</button>`));
+  return wrap;
+}
+
+function buildWheelSVG(pool){
+  const n = pool.length, seg = 360/n;
+  const colors = ['#d64545','#2a9d8f','#f2b134','#8a5a2b','#5c3a99'];
+  const pt = (deg,r)=>{ const a=(deg-90)*Math.PI/180; return [ (r*Math.cos(a)).toFixed(2), (r*Math.sin(a)).toFixed(2) ]; };
+  let out = '';
+  pool.forEach((p,i)=>{
+    let col = colors[i%colors.length];
+    if(i===n-1 && n>1 && col===colors[0]) col = colors[(i+2)%colors.length];
+    const a0=i*seg, a1=(i+1)*seg;
+    const [x0,y0]=pt(a0,100), [x1,y1]=pt(a1,100);
+    const large = seg>180?1:0;
+    out += `<path d="M0 0 L${x0} ${y0} A100 100 0 ${large} 1 ${x1} ${y1} Z" fill="${col}" stroke="#0b0c14" stroke-width="1.2"/>`;
+    let name = p.name.toUpperCase();
+    if(name.length>11) name = name.slice(0,10)+'…';
+    const fs = Math.max(7, Math.min(13, 62/Math.max(name.length,4)*1.5));
+    const mid = a0+seg/2;
+    out += `<text transform="rotate(${mid-90})" x="92" y="0" text-anchor="end" dominant-baseline="central" font-family="Inter,sans-serif" font-weight="800" font-size="${fs.toFixed(1)}" fill="#fff" stroke="rgba(0,0,0,.55)" stroke-width="2.2" paint-order="stroke" stroke-linejoin="round">${name.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</text>`;
+  });
+  return `<svg viewBox="-100 -100 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="display:block">${out}</svg>`;
+}
+
+function renderRoulette(){
+  wheelLocked = false; // cada vez que se entra a esta pantalla, el botón queda disponible
+  const pool = eligibleSearchers();
+  const wrap = el(`
+    <div>
+      <h2 style="text-align:center;">🎲 ELIGIENDO BUSCADOR</h2>
+      <div class="wheel-wrap">
+        <div class="wheel-outer" style="width:min(340px,88vw); height:min(340px,88vw);">
+          <div class="wheel-pointer">🔻</div>
+          <div class="wheel" id="wheelEl">${buildWheelSVG(pool)}</div>
+          <div class="wheel-center">🎯</div>
+        </div>
+        <button class="btn btn-primary" id="spinWheelBtn" style="max-width:280px;" onclick="spinWheel()">🎲 GIRAR RULETA</button>
+        <div class="result-badge" id="wheelResult" style="display:none;">
+          <div class="label">🔎 El buscador es:</div>
+          <div class="value" id="wheelResultName"></div>
+          <button class="btn btn-cyan" style="max-width:280px; margin-top:16px;" onclick="goTo('liberationPoint')">➡️ CONTINUAR</button>
+        </div>
+      </div>
+    </div>`);
+  return wrap;
+}
+
+function renderLiberationPointScreen(){
+  return el(`
+    <div>
+      <h2 style="text-align:center;">📍 PUNTO DE LIBERACIÓN</h2>
+      <div class="card-box">
+        <p style="color:var(--dim); font-size:14px;">El Buscador debe establecer físicamente el lugar donde los jugadores pueden liberarse gritando "¡POR MÍ!".</p>
+        <input type="text" id="liberationInput" placeholder="Ej: La puerta principal" value="${state.liberationPoint||''}">
+      </div>
+      <button class="btn btn-primary" onclick="askLiberationPointAndStart()">➡️ CONTINUAR</button>
+    </div>`);
+}
+
+function renderRoundScreen(){
+  if(!state.roundData){
+    return el(`<div><p>No hay ronda activa.</p><button class="btn btn-primary" onclick="goToRoulette()">Iniciar ronda</button></div>`);
+  }
+  const rd = state.roundData;
+  const searcher = getPlayer(state.currentSearcherId);
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`
+    <div class="round-header">
+      <div class="r digits">RONDA ${state.round}</div>
+      <div class="meta">🔎 Buscador<b>${searcher?searcher.name:'—'}</b>📍 ${state.liberationPoint}</div>
+    </div>`));
+  if(state.finalHunt.active){
+    wrap.appendChild(el(`<div class="card-box" style="background:linear-gradient(135deg,#3a1522,#26101a); border-color:var(--bad);"><b>🚨 ÚLTIMA CAZA ACTIVA</b><div style="color:var(--dim); font-size:13px; margin-top:4px;">Esta es la última ronda de la partida.</div></div>`));
+  }
+  const list = el(`<div></div>`);
+  Object.keys(rd.statuses).forEach(id=>{
+    const p = getPlayer(id);
+    const status = rd.statuses[id];
+    const icon = status==='hidden'?'🫥':status==='found'?'🔴':'🟢';
+    const statusLabel = status==='hidden'?'Escondida':status==='found'?'Encontrado':'Liberado';
+    const pillClass = status==='hidden'?'status-hidden':status==='found'?'status-found':'status-liberated';
+    const row = el(`
+      <div class="player-round-row">
+        ${p.photo?`<img src="${p.photo}" class="pr-avatar">`:`<div class="pr-avatar-fallback">${p.name.charAt(0).toUpperCase()}</div>`}
+        <div style="font-size:16px;">${icon}</div>
+        <div class="name">${p.name}${p.extremeMode?'<span class="extreme-tag">👑</span>':''}</div>
+        <span class="status-pill ${pillClass}">${statusLabel}</span>
+      </div>`);
+    list.appendChild(row);
+  });
+  wrap.appendChild(list);
+  if(state.pendingNextRound){
+    wrap.appendChild(el(`<div class="card-box" style="text-align:center;"><b>✅ Ronda terminada</b><div style="color:var(--dim); font-size:13px; margin-top:4px;">Pulsa "SIGUIENTE RONDA" para continuar.</div></div>`));
+    return wrap;
+  }
+  if(roundIsFinished()){
+    wrap.appendChild(el(`<div class="card-box" style="border-color:var(--cyan);"><b>🏁 Ronda terminada</b><div style="color:var(--dim); font-size:13px; margin-top:4px;">Los puntos ya fueron calculados.</div></div>`));
+    wrap.appendChild(el(`<button class="btn btn-primary" onclick="nextRoundFromMoment()">➡️ SIGUIENTE RONDA</button>`));
+    wrap.appendChild(el(`<button class="btn btn-secondary" onclick="goTo('leaderboard')">🏆 VER CLASIFICACIÓN</button>`));
+    return wrap;
+  }
+  wrap.appendChild(el(`<button class="btn btn-secondary" onclick="openFindModal()">🔎 ENCONTRÉ A ESTE JUGADOR</button>`));
+  wrap.appendChild(el(`<button class="btn btn-cyan" onclick="openLiberateModal()">🟢 LIBERAR JUGADOR</button>`));
+  if(Object.keys(rd.statuses).some(id=>rd.statuses[id]==='found')){
+    wrap.appendChild(el(`<button class="btn btn-gold" onclick="openSearcherLiberateModal()">🤝 EL BUSCADOR LIBERA A ALGUIEN <small>(+2)</small></button>`));
+  }
+  if(hiddenRemaining().length===0){
+    wrap.appendChild(el(`<div class="card-box" style="border-color:var(--gold); margin-top:14px;"><b>Ya no queda nadie escondido</b><div style="color:var(--dim); font-size:13px; margin-top:4px;">Si algún jugador encontrado todavía puede liberarse, márcalo arriba. Si no, termina la ronda para calcular los puntos.</div></div>`));
+    wrap.appendChild(el(`<button class="btn btn-gold" onclick="finishRound()">🏁 TERMINAR RONDA</button>`));
+  }
+  wrap.appendChild(el(`<button class="btn btn-ghost" onclick="undoLastAction()">↩️ DESHACER ÚLTIMA ACCIÓN</button>`));
+  return wrap;
+}
+
+function renderLeaderboard(){
+  const wrap = el(`<div><h2>🏆 CLASIFICACIÓN</h2></div>`);
+  const sorted = [...state.players].sort((a,b)=>b.points-a.points);
+  const medals = ['🥇','🥈','🥉'];
+  sorted.forEach((p,i)=>{
+    const pct = Math.min(100, Math.round((p.points/12)*100));
+    const row = el(`
+      <div class="leader-row">
+        <div class="rank">${medals[i]||(i+1)}</div>
+        ${p.photo?`<img src="${p.photo}" class="pin-avatar">`:`<div class="pin-avatar-fallback">${p.name.charAt(0).toUpperCase()}</div>`}
+        <div class="info">
+          <div class="top"><span>${p.name}${p.extremeMode?`<span class="extreme-tag">👑 EXTREMO ${p.extremeRoundsLeft}</span>`:''}</span><span class="pts digits">${p.points}</span></div>
+          <div class="bar"><div style="width:${pct}%"></div></div>
+          <div style="font-size:11px; color:var(--dim); margin-top:4px;">🟢 ${p.liberations||0} liberaciones · 🔎 ${p.foundCount||0} encontrado · 🤝 ${p.rescues||0} rescates</div>
+        </div>
+      </div>`);
+    wrap.appendChild(row);
+  });
+  if(state.finalHunt.active) wrap.appendChild(el(`<div class="card-box" style="border-color:var(--bad); margin-top:14px;">🚨 Última Caza activa — la ronda actual será decisiva.</div>`));
+  if(roundIsFinished()) wrap.appendChild(el(`<button class="btn btn-primary" onclick="nextRoundFromMoment()">➡️ SIGUIENTE RONDA</button>`));
+  else if(state.roundData && hiddenRemaining().length===0) wrap.appendChild(el(`<button class="btn btn-gold" onclick="goTo('round')">🏁 VOLVER A LA RONDA PARA TERMINARLA</button>`));
+  return wrap;
+}
+
+function renderCardsScreen(){
+  const wrap = el(`<div><h2>🃏 VER MI CARTA</h2><p style="color:var(--dim); font-size:14px;">Elige tu nombre para revelar tu carta en privado. Nadie más debe mirar la pantalla.</p></div>`);
+  if(!state.roundData){
+    wrap.appendChild(el(`<div class="card-box">No hay una ronda activa con cartas repartidas.</div>`));
+    return wrap;
+  }
+  const rd = state.roundData;
+  const list = el(`<div></div>`);
+  Object.keys(rd.cards).forEach(id=>{
+    const p = getPlayer(id);
+    const status = rd.statuses[id];
+    const btn = el(`<button class="btn btn-secondary" style="justify-content:space-between;"><span>${p.name}</span><span>${status==='hidden'?'🫥':status==='found'?'🔴':'🟢'}</span></button>`);
+    btn.onclick = ()=>{
+      const card = CARDS.find(c=>c.id===rd.cards[id]);
+      renderOverlay('cardReveal', {playerId:id, card, mode:'private'});
+    };
+    list.appendChild(btn);
+  });
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function renderHistory(){
+  const wrap = el(`<div><h2>📜 HISTORIAL DE PARTIDA</h2></div>`);
+  if(state.history.length===0){
+    wrap.appendChild(el(`<div class="card-box">Todavía no hay rondas completadas.</div>`));
+    return wrap;
+  }
+  [...state.history].reverse().forEach(h=>{
+    const searcher = getPlayer(h.searcherId);
+    const box = el(`<div class="hist-round"><h4>RONDA ${h.round}</h4><div class="hist-line">🔎 Buscador: <b>${searcher?searcher.name:'—'}</b> · +${h.log.filter(l=>l.playerId===h.searcherId && (l.event==='buscador_encontro'||l.event==='buscador_libero')).reduce((a,l)=>a+l.points,0)}</div><div class="hist-line">📍 ${h.liberationPoint}</div></div>`);
+    Object.keys(h.statuses).forEach(id=>{
+      const p = getPlayer(id);
+      const st = h.statuses[id];
+      const logEntry = h.log.find(l=>l.playerId===id);
+      const pts = logEntry ? logEntry.points : 0;
+      const stLabel = st==='liberated' ? '🟢 Liberado' : '🔴 Encontrado, no liberado';
+      box.appendChild(el(`<div class="hist-line">${p?p.name:'—'}: ${stLabel} · <b>+${pts}</b></div>`));
+    });
+    wrap.appendChild(box);
+  });
+  return wrap;
+}
+
+function renderStats(){
+  const wrap = el(`<div><h2>📊 ESTADÍSTICAS</h2></div>`);
+  if(state.players.length===0){ wrap.appendChild(el(`<div class="card-box">Añade jugadores para ver estadísticas.</div>`)); return wrap; }
+  const byMax = (key)=>[...state.players].sort((a,b)=>(b[key]||0)-(a[key]||0))[0];
+  const stats = [
+    ['🏆 Más puntos', byMax('points'), 'points','pts'],
+    ['🏃 Más liberaciones', byMax('liberations'),'liberations',''],
+    ['🔎 Más veces encontrado', byMax('foundCount'),'foundCount',''],
+    ['🤝 Más rescates', byMax('rescues'),'rescues',''],
+    ['❤️ Más veces rescatado', byMax('rescuedCount'),'rescuedCount',''],
+    ['🔥 Mejor racha', byMax('streak'),'streak',''],
+    ['🎯 Último en ser encontrado (veces)', byMax('timesLastFound'),'timesLastFound','']
+  ];
+  const grid = el(`<div class="stat-grid"></div>`);
+  stats.forEach(([label,p,key])=>{
+    grid.appendChild(el(`<div class="stat-card"><div class="k">${label}</div><div class="v">${p?p.name:'—'} <small>${p?(p[key]||0):0}</small></div></div>`));
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+const RULES_TEXT = [
+  ['🎮 ¿Qué es?','Escondidijo Extremo mezcla escondidas, cartas secretas, escapes, estrategia, suerte, puntuación, liberaciones y retos. Pensado para 5–7 jugadores: un Buscador y el resto se esconde con una carta secreta.'],
+  ['🏆 Objetivo','Llegar a 12 puntos. Al llegar a 9 puntos se activa el Modo Extremo (no puedes ganar ni perder puntos durante 3 rondas). Al llegar a 10 puntos se activa la Última Caza: la siguiente ronda es la final.'],
+  ['📍 Punto de Liberación','El Buscador establece un lugar físico antes de cada ronda. Al tocarlo y gritar "¡POR MÍ!" el jugador queda Liberado y termina su participación en esa ronda. Antes de cada ronda, el Buscador cuenta 50 segundos con los ojos tapados mientras los demás se esconden.'],
+  ['🃏 Las 11 cartas','1 carta buena y 10 malas, repartidas boca abajo a cada jugador escondido. El Buscador nunca recibe carta. Al ser encontrado, el jugador revela y cumple su carta inmediatamente.'],
+  ['⭐ Puntuación','+3 si no te encuentran y te liberas. +2 si te encuentran pero luego te liberas. +1 si eres el último en ser encontrado y no te liberas. 0 si te encuentran, no te liberas y aún quedan otros escondidos.'],
+  ['🔎 Puntos del Buscador','El Buscador también puntúa: +1 punto cada vez que encuentra a un jugador y +2 puntos cada vez que libera a un jugador ya encontrado (el jugador liberado no recibe puntos por ello). Si no encuentra ni libera a nadie, no suma ningún punto. En Modo Extremo el Buscador tampoco suma puntos.'],
+  ['🤝 Rescate','El primer jugador en liberarse puede elegir a un jugador ya encontrado para liberarlo también. No puede volver a rescatar a esa misma persona durante las 3 rondas siguientes.'],
+  ['🔥 Racha','3 liberaciones consecutivas otorgan +1 punto extra. La racha no genera puntos durante el Modo Extremo, aunque puede seguir contando visualmente.'],
+  ['🎲 Elección del Buscador','Se elige por ruleta aleatoria. El mismo jugador no puede ser Buscador dos rondas seguidas si hay otros disponibles.'],
+  ['🚨 Última Caza y empates','Al llegar a 10 puntos, la ronda siguiente es la última; gana quien tenga más puntos. Si hay empate, se realiza un Desempate Extremo: uno se esconde y el otro busca, midiendo el tiempo; gana quien resista más.'],
+  ['🔒 Regla de oro','Ninguna carta puede hacer perder automáticamente a un jugador. Siempre debe existir alguna posibilidad de liberarse.'],
+  ['⚠️ Seguridad','No empujar, golpear, agarrar violentamente ni bloquear físicamente. No esconderse en lugares peligrosos ni correr hacia calles o vehículos. La seguridad siempre tiene prioridad sobre cualquier carta.']
+];
+function renderRules(){
+  const wrap = el(`<div><h2>📖 REGLAS</h2></div>`);
+  RULES_TEXT.forEach(([t,body])=>{
+    wrap.appendChild(el(`<div class="rules-block"><h4>${t}</h4><p>${body}</p></div>`));
+  });
+  return wrap;
+}
+
+function renderSettings(){
+  const wrap = el(`<div><h2>⚙️ AJUSTES</h2></div>`);
+  const soundRow = el(`<div class="toggle-row"><span>🔊 Sonido</span><div class="switch ${state.settings.sound?'on':''}"><div class="knob"></div></div></div>`);
+  soundRow.querySelector('.switch').onclick = ()=>{ toggleSound(); };
+  wrap.appendChild(soundRow);
+  const animRow = el(`<div class="toggle-row"><span>✨ Animaciones</span><div class="switch ${state.settings.animations?'on':''}"><div class="knob"></div></div></div>`);
+  animRow.querySelector('.switch').onclick = ()=>{ state.settings.animations=!state.settings.animations; saveGame(); render(); };
+  wrap.appendChild(animRow);
+
+  const exportBtn = el(`<button class="btn btn-secondary">📤 EXPORTAR PARTIDA</button>`);
+  exportBtn.onclick = exportGame;
+  wrap.appendChild(exportBtn);
+
+  const importWrap = el(`<div></div>`);
+  const importBtn = el(`<button class="btn btn-secondary">📥 IMPORTAR PARTIDA</button>`);
+  const fileInput = el(`<input type="file" accept="application/json" style="display:none;">`);
+  importBtn.onclick = ()=> fileInput.click();
+  fileInput.onchange = (e)=>{ if(e.target.files[0]) importGameFile(e.target.files[0]); };
+  importWrap.appendChild(importBtn); importWrap.appendChild(fileInput);
+  wrap.appendChild(importWrap);
+
+  const resetBtn = el(`<button class="btn btn-ghost" style="color:var(--bad); border-color:var(--bad);">🗑️ BORRAR PARTIDA</button>`);
+  resetBtn.onclick = ()=>{
+    askConfirm('🗑️ ¿Borrar partida?','Se borrarán jugadores, puntos e historial. Esta acción no se puede deshacer.','Sí, borrar todo', ()=>{ deleteSave(); showToast('Partida borrada'); });
+  };
+  wrap.appendChild(resetBtn);
+
+  const restartBtn = el(`<button class="btn btn-ghost">🔄 REINICIAR PARTIDA (mismos jugadores)</button>`);
+  restartBtn.onclick = ()=>{
+    askConfirm('🔄 ¿Reiniciar partida?','Se reiniciarán puntos, rondas e historial, pero se mantienen los mismos jugadores.','Sí, reiniciar', ()=>{
+      const names = state.players.map(p=>p.name);
+      const settings = state.settings;
+      state = freshState();
+      state.settings = settings;
+      names.forEach(n=>addPlayer(n));
+      state.screen='players';
+      saveGame();
+      render();
+      showToast('Partida reiniciada');
+    });
+  };
+  wrap.appendChild(restartBtn);
+  return wrap;
+}
+
+function renderPresenter(){
+  const wrap = el(`<div><h2 style="text-align:center;">📺 MODO PRESENTADOR</h2></div>`);
+  wrap.appendChild(el(`
+    <div class="presenter-big">
+      <div class="r">RONDA ${state.round||0}</div>
+      <div class="searcher">🔎 ${state.currentSearcherId? getPlayer(state.currentSearcherId).name : '—'}</div>
+      <div style="color:var(--dim);">📍 ${state.liberationPoint||'—'}</div>
+    </div>`));
+  if(state.roundData){
+    const list = el(`<div></div>`);
+    Object.keys(state.roundData.statuses).forEach(id=>{
+      const p = getPlayer(id);
+      const st = state.roundData.statuses[id];
+      const icon = st==='hidden'?'🫥':st==='found'?'🔴':'🟢';
+      list.appendChild(el(`<div class="player-round-row"><div>${icon}</div><div class="name">${p.name}</div></div>`));
+    });
+    wrap.appendChild(list);
+  }
+  wrap.appendChild(renderLeaderboard());
+  return wrap;
+}
+
+function renderMoment(){
+  const wrap = el(`
+    <div class="momento">
+      <div class="flame">🔥</div>
+      <h2>MOMENTO DE LA RONDA</h2>
+      <p>"${state._momentMsg||''}"</p>
+    </div>`);
+  wrap.appendChild(el(`<button class="btn btn-primary" onclick="nextRoundFromMoment()">➡️ SIGUIENTE RONDA</button>`));
+  wrap.appendChild(el(`<button class="btn btn-secondary" onclick="goTo('leaderboard')">🏆 VER CLASIFICACIÓN</button>`));
+  return wrap;
+}
+
+function renderTiebreak(){
+  const names = (state._tied||[]).map(id=>getPlayer(id).name).join(' vs ');
+  const wrap = el(`
+    <div class="momento">
+      <div class="flame">⚖️</div>
+      <h2>DESEMPATE EXTREMO</h2>
+      <p>${names} están empatados. Realicen una mini partida física: uno se esconde y otro busca, midiendo el tiempo. Gana quien resista más escondido. Cuando tengan un resultado, selecciona al ganador:</p>
+    </div>`);
+  (state._tied||[]).forEach(id=>{
+    const p = getPlayer(id);
+    const b = el(`<button class="btn btn-gold">${p.name} GANA EL DESEMPATE</button>`);
+    b.onclick = ()=> declareWinner(p);
+    wrap.appendChild(b);
+  });
+  return wrap;
+}
+
+function renderVictory(){
+  const w = getPlayer(state.winner);
+  const wrap = el(`
+    <div class="victory">
+      <div class="cups">🏆🏆🏆</div>
+      <h1>¡TENEMOS GANADOR!</h1>
+      <div class="name">${w?w.name.toUpperCase():'—'}</div>
+      <div class="pts">⭐ ${w?w.points:0} PUNTOS</div>
+    </div>`);
+  const btn1 = el(`<button class="btn btn-primary">🔄 NUEVA PARTIDA</button>`);
+  btn1.onclick = ()=>{ deleteSave(); };
+  const btn2 = el(`<button class="btn btn-secondary">📊 VER RESULTADOS</button>`);
+  btn2.onclick = ()=> goTo('leaderboard');
+  wrap.appendChild(btn1); wrap.appendChild(btn2);
+  return wrap;
+}
+
+/* ---------------- overlays / modals ---------------- */
+let pendingConfirm=null;
+function askConfirm(title, msg, yesLabel, cb){
+  pendingConfirm = cb;
+  renderOverlay('confirm', {title, msg, yesLabel});
+}
+function runConfirm(){
+  const cb = pendingConfirm; pendingConfirm=null;
+  closeOverlay();
+  if(cb) cb();
+}
+function saveEditName(id){
+  const v = document.getElementById('editNameInput').value;
+  closeOverlay();
+  editPlayer(id, v);
+}
+let cardMoveH=null, cardUpH=null;
+function closeOverlay(){
+  if(cardMoveH){ window.removeEventListener('mousemove', cardMoveH); cardMoveH=null; }
+  if(cardUpH){ window.removeEventListener('mouseup', cardUpH); cardUpH=null; }
+  const host = document.getElementById('overlays');
+  host.innerHTML='';
+}
+function renderOverlay(kind, data){
+  if(cardMoveH){ window.removeEventListener('mousemove', cardMoveH); cardMoveH=null; }
+  if(cardUpH){ window.removeEventListener('mouseup', cardUpH); cardUpH=null; }
+  const host = document.getElementById('overlays');
+  host.innerHTML='';
+  if(kind==='confirm'){
+    const ov = el(`
+      <div class="overlay center">
+        <div class="sheet" style="max-width:340px;">
+          <h3>${data.title}</h3>
+          <p style="color:var(--dim); font-size:14px;">${data.msg}</p>
+          <button class="btn btn-primary" onclick="runConfirm()">${data.yesLabel||'Aceptar'}</button>
+          <button class="btn btn-ghost" onclick="pendingConfirm=null; closeOverlay()">Cancelar</button>
+        </div>
+      </div>`);
+    host.appendChild(ov);
+    return;
+  }
+  if(kind==='editName'){
+    const ov = el(`
+      <div class="overlay center">
+        <div class="sheet" style="max-width:340px;">
+          <h3>✏️ Editar nombre</h3>
+          <input type="text" id="editNameInput">
+          <button class="btn btn-cyan" onclick="saveEditName('${data.id}')">Guardar</button>
+          <button class="btn btn-ghost" onclick="closeOverlay()">Cancelar</button>
+        </div>
+      </div>`);
+    host.appendChild(ov);
+    const inp = ov.querySelector('#editNameInput');
+    inp.value = data.name;
+    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') saveEditName(data.id); });
+    setTimeout(()=>inp.focus(),50);
+    return;
+  }
+  if(kind==='confirmNewGame'){
+    const ov = el(`
+      <div class="overlay center">
+        <div class="sheet" style="max-width:340px;">
+          <h3>¿Nueva partida?</h3>
+          <p style="color:var(--dim); font-size:14px;">Ya existe una partida guardada. Empezar una nueva la reemplazará.</p>
+          <button class="btn btn-primary" onclick="confirmNewGame()">Sí, empezar nueva</button>
+          <button class="btn btn-ghost" onclick="closeOverlay()">Cancelar</button>
+        </div>
+      </div>`);
+    host.appendChild(ov);
+    return;
+  }
+  if(kind==='find'){
+    const ov = el(`<div class="overlay"><div class="sheet"><div class="close-row"><button class="x" onclick="closeOverlay()">✕</button></div><h3>🔎 ¿A quién encontraste?</h3></div></div>`);
+    const sheet = ov.querySelector('.sheet');
+    data.hidden.forEach(id=>{
+      const p = getPlayer(id);
+      const b = el(`<button class="btn btn-secondary">${p.name}</button>`);
+      b.onclick = ()=> findPlayer(id);
+      sheet.appendChild(b);
+    });
+    host.appendChild(ov);
+    return;
+  }
+  if(kind==='cardReveal'){
+    renderCardRevealOverlay(data);
+    return;
+  }
+  if(kind==='liberate'){
+    const rd = state.roundData;
+    const ov = el(`<div class="overlay"><div class="sheet"><div class="close-row"><button class="x" onclick="closeOverlay()">✕</button></div><h3>🟢 ¿Quién quedó libre?</h3><p style="color:var(--dim); font-size:13px;">Elige si el jugador llegó solo al Punto de Liberación o si lo liberó otro jugador (rescate).</p></div></div>`);
+    const sheet = ov.querySelector('.sheet');
+    const first = rd.firstLiberatorId ? getPlayer(rd.firstLiberatorId) : null;
+    data.eligible.forEach(id=>{
+      const p = getPlayer(id);
+      const wasFound = rd.statuses[id]==='found';
+      sheet.appendChild(el(`<div class="section-title" style="margin:16px 0 4px;">${p.name}</div>`));
+      const self = el(`<button class="btn btn-cyan" style="margin-top:6px;">🏃 SE LIBERÓ SOLO ${wasFound?'(+2)':'(+3)'}</button>`);
+      self.onclick = ()=> liberatePlayer(id);
+      sheet.appendChild(self);
+      if(wasFound){
+        let label, disabled=false;
+        if(rd.rescueDone){ label='🤝 LO LIBERARON (ya hubo rescate esta ronda)'; disabled=true; }
+        else if(!first){ label='🤝 LO LIBERARON (aún nadie se liberó)'; disabled=true; }
+        else if(first.id===id){ label='🤝 LO LIBERARON'; disabled=true; }
+        else if(isRescueLocked(first.id,id)){ label=`🔒 ${first.name} no puede liberarlo (${state.rescueLocks[first.id][id]} rondas)`; disabled=true; }
+        else { label=`🤝 LO LIBERÓ ${first.name.toUpperCase()} (rescate)`; }
+        const resc = el(`<button class="btn ${disabled?'btn-ghost':'btn-gold'}" ${disabled?'disabled':''}>${label}</button>`);
+        if(!disabled) resc.onclick = ()=> rescuePlayer(first.id, id);
+        sheet.appendChild(resc);
+      }
+    });
+    host.appendChild(ov);
+    return;
+  }
+  if(kind==='searcherLiberate'){
+    const searcher = getPlayer(state.currentSearcherId);
+    const ov = el(`<div class="overlay"><div class="sheet"><div class="close-row"><button class="x" onclick="closeOverlay()">✕</button></div><h3>🤝 ¿A quién libera ${searcher?searcher.name:'el Buscador'}?</h3><p style="color:var(--dim); font-size:13px;">El jugador queda liberado (sin puntos para él) y el Buscador suma +2.</p></div></div>`);
+    const sheet = ov.querySelector('.sheet');
+    data.trapped.forEach(id=>{
+      const p = getPlayer(id);
+      const b = el(`<button class="btn btn-gold">${p.name}</button>`);
+      b.onclick = ()=> searcherLiberates(id);
+      sheet.appendChild(b);
+    });
+    host.appendChild(ov);
+    return;
+  }
+  if(kind==='rescue'){
+    const ov = el(`<div class="overlay"><div class="sheet"><h3>🤝 ELIGE A QUIÉN LIBERAR</h3><p style="color:var(--dim); font-size:13px;">El primer jugador en liberarse puede rescatar a un jugador atrapado.</p></div></div>`);
+    const sheet = ov.querySelector('.sheet');
+    data.trapped.forEach(id=>{
+      const p = getPlayer(id);
+      const locked = isRescueLocked(data.liberatorId, id) || state.roundData.rescueDone;
+      const b = el(`<button class="btn ${locked?'btn-ghost':'btn-gold'}" ${locked?'disabled':''}>${locked?'🔒 ':''}${p.name} ${locked?(state.roundData.rescueDone?'<br><small>Ya hubo un rescate</small>':'<br><small>No disponible durante '+((state.rescueLocks[data.liberatorId]||{})[id]||0)+' rondas</small>'):''}</button>`);
+      if(!locked) b.onclick = ()=> rescuePlayer(data.liberatorId, id);
+      sheet.appendChild(b);
+    });
+    const skip = el(`<button class="btn btn-ghost">No rescatar a nadie</button>`);
+    skip.onclick = ()=>{ closeOverlay(); checkRoundEnd(); render(); };
+    sheet.appendChild(skip);
+    host.appendChild(ov);
+    return;
+  }
+}
+
+function renderCardRevealOverlay({playerId, card, mode}){
+  const host = document.getElementById('overlays');
+  const p = getPlayer(playerId);
+  const ov = el(`
+    <div class="overlay center">
+      <div class="sheet" style="max-width:280px; background:transparent; box-shadow:none; padding:0;">
+        <div class="facade-wrap">
+          <div class="facade-stage">
+            <div class="card-face ${card.type}" id="cardFace" style="display:none;">
+              <div class="tag">${card.emoji}</div>
+              <div class="title">${card.title}</div>
+              <div class="body">${card.text}</div>
+            </div>
+            <div class="facade" id="facadeEl">
+              <div class="big">🃏</div>
+              <div class="who">${p.name.toUpperCase()}</div>
+              <div class="arrow">↑</div>
+              <div class="hint">DESLIZA PARA REVELAR CARTA</div>
+            </div>
+          </div>
+          <button class="btn btn-ghost" id="hideCardBtn" style="max-width:220px; display:none;">🔒 OCULTAR CARTA</button>
+          <button class="btn btn-ghost" style="max-width:220px;" onclick="closeOverlay()">Cerrar</button>
+        </div>
+      </div>
+    </div>`);
+  host.appendChild(ov);
+
+  const facade = ov.querySelector('#facadeEl');
+  const cardFace = ov.querySelector('#cardFace');
+  const hideBtn = ov.querySelector('#hideCardBtn');
+  let startY=null, dragging=false, revealed=false;
+
+  function reveal(){
+    if(revealed) return;
+    revealed = true;
+    playCardRevealSound();
+    facade.style.transition = 'transform .45s cubic-bezier(.2,.8,.3,1), opacity .45s ease';
+    facade.style.transform = 'translateY(-360px) rotate(-8deg)';
+    facade.style.opacity='0';
+    cardFace.style.display='flex';
+    hideBtn.style.display='block';
+    setTimeout(()=>{ facade.style.display='none'; }, 460);
+  }
+  function hide(){
+    revealed=false;
+    cardFace.style.display='none';
+    hideBtn.style.display='none';
+    facade.style.display='flex';
+    facade.style.transition='none';
+    facade.style.transform='translateY(0) rotate(0)';
+    facade.style.opacity='1';
+  }
+  hideBtn.onclick = hide;
+
+  function onDown(y){ startY=y; dragging=true; facade.style.cursor='grabbing'; }
+  function onMove(y){
+    if(!dragging||startY===null) return;
+    const delta = startY - y;
+    if(delta>0){
+      facade.style.transition='none';
+      facade.style.transform = `translateY(${-delta}px) rotate(${-delta/18}deg)`;
+      facade.style.opacity = Math.max(0.2, 1-delta/260);
+    }
+  }
+  function onUp(y){
+    if(!dragging) return;
+    dragging=false;
+    const delta = startY!==null && y!==null ? startY-y : 0;
+    if(delta>70){ reveal(); }
+    else{
+      facade.style.transition='transform .25s ease, opacity .25s ease';
+      facade.style.transform='translateY(0) rotate(0)';
+      facade.style.opacity='1';
+    }
+    startY=null;
+  }
+  facade.addEventListener('touchstart', e=>onDown(e.touches[0].clientY), {passive:true});
+  facade.addEventListener('touchmove', e=>onMove(e.touches[0].clientY), {passive:true});
+  facade.addEventListener('touchend', e=>onUp(e.changedTouches[0].clientY));
+  facade.addEventListener('mousedown', e=>onDown(e.clientY));
+  cardMoveH = e=>{ if(dragging) onMove(e.clientY); };
+  cardUpH = e=>{ if(dragging) onUp(e.clientY); };
+  window.addEventListener('mousemove', cardMoveH);
+  window.addEventListener('mouseup', cardUpH);
+  // tap fallback (click)
+  facade.addEventListener('click', ()=>{ if(!revealed && !dragging) reveal(); });
+}
+
+/* ---------------- init ---------------- */
+render();
+</script>
+</body>
+</html>
